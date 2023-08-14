@@ -1,7 +1,6 @@
 from aiogram import types, F, Router
 from aiogram.fsm.context import FSMContext
 
-
 from utils.states import AdminCategory
 from utils.keyboards.admin_keyboards import create_confirm_kb
 
