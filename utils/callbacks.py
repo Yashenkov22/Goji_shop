@@ -15,9 +15,3 @@ class CloseCallback(CallbackData, prefix='close'):
 
 class AddCategoryCallback(CallbackData, prefix='add_cat'):
     category: str
-    prefix: str = 'add_cat'
-
-
-
-# c = CategoryCallback(category='Кроссы')
-# print(c.pack())

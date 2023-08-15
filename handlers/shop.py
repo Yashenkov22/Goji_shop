@@ -7,9 +7,9 @@ from sqlalchemy.orm.session import Session
 
 from config import PROMO_ID
 from utils.keyboards.shop_keyboards import (create_category_kb,
-                                  create_items_kb,
-                                  create_main_kb)
-from utils.keyboards.promo_keyboards import close_kb
+                                            create_items_kb,
+                                            create_main_kb,
+                                            create_close_kb)
 
 
 shop_router = Router()
@@ -40,22 +40,24 @@ async def show_categories(message: types.Message | types.CallbackQuery, session:
 @shop_router.message(F.text == 'Промо')
 async def show_promo(message: types.Message):
     await message.answer_video(PROMO_ID,
-                               reply_markup=close_kb.as_markup())
+                               reply_markup=create_close_kb().as_markup())
     await message.delete()
     
 
 @shop_router.message(F.text == 'Подробности')
 async def show_promo(message: types.Message):
     await message.answer(f'Если возникли вопросы или предложения, пишите сюда https://t.me/dorriribka',
-                         reply_markup=close_kb.as_markup())
+                         reply_markup=create_close_kb().as_markup())
     await message.delete()
 
 
+#Close button callback handler
 @shop_router.callback_query(F.data.startswith('close'))
 async def close_up(callback: types.CallbackQuery):
     await main_page(callback, txt='Закрыл')
 
 
+#Category button callback handler
 @shop_router.callback_query(F.data.startswith('cat'))
 async def show_items(callback: types.CallbackQuery,
                      session: Session):
@@ -66,6 +68,7 @@ async def show_items(callback: types.CallbackQuery,
                                   reply_markup=item_kb.as_markup())
 
 
+#To back button callback handler
 @shop_router.callback_query()
 async def get_back_to(callback: types.CallbackQuery, session: Session):
     if callback.data == 'to_main':
@@ -75,3 +78,10 @@ async def get_back_to(callback: types.CallbackQuery, session: Session):
     elif callback.data == 'to_categories':
         await callback.answer('Вернул на категории')
         await show_categories(callback.message, session)
+
+
+#Any input handler
+@shop_router.message()
+async def any_input(message: types.Message):
+    await message.answer('Не нужно сюда нечего писать, я интерактивный')
+    await main_page(message, txt='Выбери что нибудь из меню')

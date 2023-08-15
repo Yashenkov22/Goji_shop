@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.orm import Session
 
 from utils.keyboards.admin_keyboards import create_admin_kb
-from db.queries import add_category, add_item
+from db.queries import add_category, add_item, delete_item, update_item
 from handlers.shop import main_page
 from .admin_category import category_router
 from .admin_item import item_router
@@ -53,7 +53,33 @@ async def get_confirm(callback: types.CallbackQuery,
                 await callback.answer('Не получилось')
             else:
                 await callback.answer(f'Товар {data["name"]} добавлен')
-    
+
+        elif data['action'] == 'del_item':
+            try:
+                delete_item(session, data)
+            except Exception as ex:
+                print(ex)
+                await callback.answer('Не получилось')
+            else:
+                await callback.answer(f'Товар {data["name"]} удален')
+        
+        elif data['action'] == 'edit_item':
+            new_data = {}
+            old_item = data['old_item']
+            new_data['id'] = old_item[0]
+            new_data['name'] = old_item[1] if data['name'] == 'Нет' else data['name']
+            new_data['price'] = old_item[2] if data['price'] == 'Нет' else data['price']
+            if old_item[1] == new_data['name'] and int(old_item[2]) == new_data['price']:
+                await callback.answer('Товар остался таким же')
+            else:
+                try:
+                    update_item(session, new_data)
+                except Exception as ex:
+                    print(ex)
+                    await callback.answer('Не получилось')
+                else:
+                    await callback.answer('Товар изменён')
+
     await state.clear()
     await callback.message.delete()
     await admin_page(callback)

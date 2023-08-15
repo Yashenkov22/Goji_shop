@@ -16,7 +16,7 @@ items = Table(
     metadata,
     Column('id',Integer, primary_key=True, autoincrement=True),
     Column('name', String),
-    Column('price', DECIMAL(2)),
+    Column('price', DECIMAL(2, 2)),
     Column('category', String, ForeignKey('categories.name')),
 )
 
