@@ -21,7 +21,8 @@ async def main():
     dp.include_router(shop_router)
     
     dp.update.middleware(DbSessionMiddleware(session_pool=session_maker))
-
+    
+    # metadata.drop_all(engine)
     metadata.create_all(engine)
 
     await dp.start_polling(bot)

@@ -15,7 +15,12 @@ class DeleteItem(StatesGroup):
     category = State()
     name = State()
 
+
 class EditItem(StatesGroup):
     old_item = State()
     name = State()
     price = State()
+
+
+class AddPhoto(StatesGroup):
+    pass

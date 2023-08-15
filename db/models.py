@@ -1,4 +1,5 @@
 from sqlalchemy import Column, DECIMAL, ForeignKey, String, Integer, MetaData, Table
+from sqlalchemy.orm import relationship
 
 
 metadata = MetaData()
@@ -24,6 +25,6 @@ items = Table(
 photos = Table(
     'photos',
     metadata,
-    Column('photo_id', Integer, primary_key=True),
-    Column('item_id',Integer, ForeignKey('items.id')),
+    Column('photo_id', String, primary_key=True),
+    Column('item_id', Integer, ForeignKey('items.id')),
 )

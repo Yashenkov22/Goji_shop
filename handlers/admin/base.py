@@ -4,7 +4,11 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.orm import Session
 
 from utils.keyboards.admin_keyboards import create_admin_kb
-from db.queries import add_category, add_item, delete_item, update_item
+from db.queries import (add_category,
+                        add_item,
+                        delete_item,
+                        update_item,
+                        insert_photo)
 from handlers.shop import main_page
 from .admin_category import category_router
 from .admin_item import item_router
@@ -22,6 +26,11 @@ async def admin_page(message: types.Message | types.CallbackQuery):
         message = message.message
     await message.answer('Здорова, Сало', reply_markup=admin_kb.as_markup(resize_keyboard=True,
                                                                         one_time_keyboard=True))
+
+
+@admin_router.message(F.text == 'На главную')
+async def create_category(message: types.Message):
+    await main_page(message)
 
 
 @admin_router.callback_query(F.data.startswith('confirm'))
@@ -79,12 +88,17 @@ async def get_confirm(callback: types.CallbackQuery,
                     await callback.answer('Не получилось')
                 else:
                     await callback.answer('Товар изменён')
+        
+        elif data['action'] == 'add_photo':
+            try:
+                insert_photo(session, data)
+            except Exception as ex:
+                print(ex)
+                await callback.answer('Не получилось')
+            else:
+                await callback.answer('Фото добавлено')
 
     await state.clear()
     await callback.message.delete()
     await admin_page(callback)
 
-
-@admin_router.message(F.text == 'На главную')
-async def create_category(message: types.Message):
-    await main_page(message)

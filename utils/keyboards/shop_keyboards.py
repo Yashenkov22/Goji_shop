@@ -28,8 +28,9 @@ def create_category_kb(session: Session, prefix: str = 'cat') -> InlineKeyboardB
             types.InlineKeyboardButton(text=cat[0],
                                        callback_data=f'{prefix}:{cat[0]}')
         )
-    category_kb.row(types.InlineKeyboardButton(text='Назад',
-                                               callback_data='to_main'))
+    if prefix == 'cat':
+        category_kb.row(types.InlineKeyboardButton(text='Назад',
+                                                callback_data='to_main'))
     return category_kb
 
 
