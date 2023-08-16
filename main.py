@@ -1,12 +1,14 @@
 import asyncio
+
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from db.models import metadata
+
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-from middlewares.db import DbSessionMiddleware
 
 from config import TOKEN_API
+from db.models import metadata
+from middlewares.db import DbSessionMiddleware
 from handlers.shop.base import shop_router
 from handlers.admin.base import admin_router
 
@@ -25,6 +27,7 @@ async def main():
     # metadata.drop_all(engine)
     metadata.create_all(engine)
 
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 

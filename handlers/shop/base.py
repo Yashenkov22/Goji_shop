@@ -13,6 +13,7 @@ from utils.keyboards.shop_keyboards import (create_category_kb,
                                             create_close_kb)
 from .shop_item import item_view_router
 
+
 shop_router = Router()
 shop_router.include_router(item_view_router)
 
@@ -27,7 +28,7 @@ async def main_page(message: Union[types.Message, types.CallbackQuery],
     
     await message.answer(txt,
                         reply_markup=main_kb.as_markup(resize_keyboard=True,
-                                                        one_time_keyboard=True))
+                                                       one_time_keyboard=True))
     await message.delete()
 
 
