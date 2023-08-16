@@ -14,7 +14,7 @@ from db.queries import select_current_item
 item_router = Router()
 
 PHOTOS_FOR_LOAD = []
-COUNT_PHOTO = 0
+
 
 ########################################Add item###############################################
 @item_router.message(F.text == 'Добавить товар')
@@ -220,11 +220,10 @@ async def process_add_photo(callback: types.CallbackQuery,
 
 @item_router.message(F.photo)
 async def load_photo(message: types.Message):
-    global COUNT_PHOTO
     photo_id = message.photo[0].file_id
     PHOTOS_FOR_LOAD.append(photo_id)
     COUNT_PHOTO += 1
-    await message.answer(f'Фото {COUNT_PHOTO} обработано',
+    await message.answer(f'Фото обработано',
                          reply_markup=load_photo_kb().as_markup(resize_keyboard=True))
 
 
@@ -232,12 +231,10 @@ async def load_photo(message: types.Message):
 async def add_photo_in_state(message: types.Message,
                              state: FSMContext):
     global PHOTOS_FOR_LOAD
-    global COUNT_PHOTO
 
     await state.update_data(photos=PHOTOS_FOR_LOAD)
     data = await state.get_data()
     PHOTOS_FOR_LOAD = []
-    COUNT_PHOTO = 0
     await message.answer(f'Добавить фото к товару <b>{data["item_name"]}</b>?',
                          reply_markup=create_confirm_kb().as_markup(),
                          parse_mode='html')

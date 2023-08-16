@@ -7,7 +7,7 @@ from sqlalchemy.orm.session import sessionmaker
 from middlewares.db import DbSessionMiddleware
 
 from config import TOKEN_API
-from handlers.shop import shop_router
+from handlers.shop.base import shop_router
 from handlers.admin.base import admin_router
 
 
