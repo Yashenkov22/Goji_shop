@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from utils.states import AddItem, DeleteItem, EditItem
 from utils.keyboards.admin_keyboards import create_confirm_kb, load_photo_kb
 from utils.keyboards.shop_keyboards import create_category_kb, create_items_kb
+from utils.cancel_admin_action import kb_with_cancel_btn
 from utils.admin_decorator import admin_only
 from db.queries import select_current_item
 
@@ -27,8 +28,9 @@ async def add_item_to_db(message: types.Message,
     await state.update_data(action='add_item')
     await state.set_state(AddItem.category)
     category_kb = create_category_kb(session, prefix='add_item')
+    keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('Выбери категорию товара',
-                         reply_markup=category_kb.as_markup())
+                         reply_markup=keyboard.as_markup())
 
 
 @item_router.callback_query(F.data.startswith('add_item'))
@@ -90,8 +92,9 @@ async def del_item_from_db(message: types.Message,
     await state.set_state(DeleteItem.category)
 
     category_kb = create_category_kb(session, prefix='for_del_item')
+    keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('<b>Вместе с товаром удалятся все фото этого товара!!!</b>\nВыбери категорию товара',
-                         reply_markup=category_kb.as_markup(),
+                         reply_markup=keyboard.as_markup(),
                          parse_mode='html')
 
 
@@ -133,8 +136,9 @@ async def edit_item_in_db(message: types.Message,
                           **kwargs):
     await state.update_data(action='edit_item')
     category_kb = create_category_kb(session, prefix='for_edit_item')
+    keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('Выбери категорию товара',
-                         reply_markup=category_kb.as_markup())
+                         reply_markup=keyboard.as_markup())
     
 
 @item_router.callback_query(F.data.startswith('for_edit_item'))
@@ -206,8 +210,9 @@ async def add_photo_to_item(message: types.Message,
                             **kwargs):
     await state.update_data(action='add_photo')
     category_kb = create_category_kb(session, prefix='add_photo')
+    keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('Выбери категорию товара',
-                         reply_markup=category_kb.as_markup())
+                         reply_markup=keyboard.as_markup())
     
     await message.delete()
     
@@ -239,9 +244,10 @@ async def process_add_photo(callback: types.CallbackQuery,
 async def load_photo(message: types.Message, **kwargs):
     photo_id = message.photo[0].file_id
     PHOTOS_FOR_LOAD.append(photo_id)
-    
+
     await message.answer(f'Фото обработано',
                          reply_markup=load_photo_kb().as_markup(resize_keyboard=True))
+    await message.delete()
 
 
 @item_router.message(F.text == 'Продолжить')
