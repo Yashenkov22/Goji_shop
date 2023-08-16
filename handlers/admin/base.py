@@ -12,6 +12,7 @@ from db.queries import (add_category,
 from handlers.shop.base import main_page
 from .admin_category import category_router
 from .admin_item import item_router
+from utils.admin_decorator import admin_only
 
 
 admin_router = Router()
@@ -20,23 +21,27 @@ admin_router.include_router(item_router)
 
 
 @admin_router.message(F.text == 'Админ панель')
-async def admin_page(message: types.Message | types.CallbackQuery):
+@admin_only
+async def admin_page(message: types.Message | types.CallbackQuery, **kwargs):
     admin_kb = create_admin_kb()
     if isinstance(message, types.CallbackQuery):
         message = message.message
-    await message.answer('Здорова, Сало', reply_markup=admin_kb.as_markup(resize_keyboard=True,
+    await message.answer('Whazz`up, Жижа', reply_markup=admin_kb.as_markup(resize_keyboard=True,
                                                                         one_time_keyboard=True))
 
 
 @admin_router.message(F.text == 'На главную')
-async def create_category(message: types.Message):
-    await main_page(message)
+@admin_only
+async def create_category(message: types.Message, **kwargs):
+    await main_page(message, txt='Главное меню')
 
 
 @admin_router.callback_query(F.data.startswith('confirm'))
+@admin_only
 async def get_confirm(callback: types.CallbackQuery,
                       state: FSMContext,
-                      session: Session):
+                      session: Session,
+                      **kwargs):
     confirm = callback.data.split(':')[-1]
 
     if confirm == 'no':

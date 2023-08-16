@@ -73,6 +73,6 @@ def create_photo_keyboard(kb_init: str):
 
 def create_close_kb():
     close_kb = InlineKeyboardBuilder()
-    close_kb.button(text='Закрыть',
+    close_kb.button(text='В главное меню',
                     callback_data=CloseCallback(action='close').pack())
     return close_kb

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from utils.states import AddItem, DeleteItem, EditItem
 from utils.keyboards.admin_keyboards import create_confirm_kb, load_photo_kb
 from utils.keyboards.shop_keyboards import create_category_kb, create_items_kb
+from utils.admin_decorator import admin_only
 from db.queries import select_current_item
 
 
@@ -18,7 +19,11 @@ PHOTOS_FOR_LOAD = []
 
 ########################################Add item###############################################
 @item_router.message(F.text == 'Добавить товар')
-async def add_item_to_db(message: types.Message, state: FSMContext, session: Session):
+@admin_only
+async def add_item_to_db(message: types.Message,
+                         state: FSMContext,
+                         session: Session,
+                         **kwargs):
     await state.update_data(action='add_item')
     await state.set_state(AddItem.category)
     category_kb = create_category_kb(session, prefix='add_item')
@@ -76,14 +81,18 @@ async def end_add_item(message: types.Message, state: FSMContext):
 
 ######################################Delete item##############################################
 @item_router.message(F.text == 'Удалить товар')
-async def del_item_from_db(message: types.Message, state: FSMContext, session: Session):
+@admin_only
+async def del_item_from_db(message: types.Message,
+                           state: FSMContext,
+                           session: Session,
+                           **kwargs):
     await state.update_data(action='del_item')
     await state.set_state(DeleteItem.category)
+
     category_kb = create_category_kb(session, prefix='for_del_item')
-    await message.answer('<b>Вместе с товаром удалятся все фото этого товара!!!</b>',
+    await message.answer('<b>Вместе с товаром удалятся все фото этого товара!!!</b>\nВыбери категорию товара',
+                         reply_markup=category_kb.as_markup(),
                          parse_mode='html')
-    await message.answer('Выбери категорию товара',
-                         reply_markup=category_kb.as_markup())
 
 
 @item_router.callback_query(F.data.startswith('for_del_item'))
@@ -117,7 +126,11 @@ async def start_del_item(callback: types.CallbackQuery,
 
 ########################################Edit item##############################################
 @item_router.message(F.text == 'Изменить товар')
-async def edit_item_in_db(message: types.Message, state: FSMContext, session: Session):
+@admin_only
+async def edit_item_in_db(message: types.Message,
+                          state: FSMContext,
+                          session: Session,
+                          **kwargs):
     await state.update_data(action='edit_item')
     category_kb = create_category_kb(session, prefix='for_edit_item')
     await message.answer('Выбери категорию товара',
@@ -187,7 +200,10 @@ async def new_price_edit_item(message: types.Message, state: FSMContext):
 
 ########################################Add photo###############################################
 @item_router.message(F.text == 'Добавить фото к товару')
-async def add_photo_to_item(message: types.Message, state: FSMContext, session: Session):
+@admin_only
+async def add_photo_to_item(message: types.Message,
+                            state: FSMContext,session: Session,
+                            **kwargs):
     await state.update_data(action='add_photo')
     category_kb = create_category_kb(session, prefix='add_photo')
     await message.answer('Выбери категорию товара',
@@ -219,17 +235,20 @@ async def process_add_photo(callback: types.CallbackQuery,
     await callback.message.delete()
 
 @item_router.message(F.photo)
-async def load_photo(message: types.Message):
+@admin_only
+async def load_photo(message: types.Message, **kwargs):
     photo_id = message.photo[0].file_id
     PHOTOS_FOR_LOAD.append(photo_id)
-    COUNT_PHOTO += 1
+    
     await message.answer(f'Фото обработано',
                          reply_markup=load_photo_kb().as_markup(resize_keyboard=True))
 
 
 @item_router.message(F.text == 'Продолжить')
+@admin_only
 async def add_photo_in_state(message: types.Message,
-                             state: FSMContext):
+                             state: FSMContext,
+                             **kwargs):
     global PHOTOS_FOR_LOAD
 
     await state.update_data(photos=PHOTOS_FOR_LOAD)

@@ -20,16 +20,19 @@ shop_router.include_router(item_view_router)
 
 @shop_router.message(Command('start'))
 async def main_page(message: Union[types.Message, types.CallbackQuery],
-                    txt='Главное меню'):
-    main_kb = create_main_kb(message.from_user.id)
-    
-    if isinstance(message, types.CallbackQuery):
-        message = message.message
-    
-    await message.answer(txt,
-                        reply_markup=main_kb.as_markup(resize_keyboard=True,
-                                                       one_time_keyboard=True))
-    await message.delete()
+                    txt=None):
+    if txt is None:
+        await show_promo(message)
+    else:
+        main_kb = create_main_kb(message.from_user.id)
+        
+        if isinstance(message, types.CallbackQuery):
+            message = message.message
+        
+        await message.answer(txt,
+                            reply_markup=main_kb.as_markup(resize_keyboard=True,
+                                                        one_time_keyboard=True))
+        await message.delete()
 
 
 @shop_router.message(F.text == 'Ассортимент')
@@ -48,7 +51,7 @@ async def show_promo(message: types.Message):
     
 
 @shop_router.message(F.text == 'Подробности')
-async def show_promo(message: types.Message):
+async def show_link(message: types.Message):
     await message.answer(f'Если возникли вопросы или предложения, пишите сюда https://t.me/dorriribka',
                          reply_markup=create_close_kb().as_markup())
     await message.delete()
@@ -57,7 +60,7 @@ async def show_promo(message: types.Message):
 #Close button callback handler
 @shop_router.callback_query(F.data.startswith('close'))
 async def close_up(callback: types.CallbackQuery):
-    await main_page(callback, txt='Закрыл')
+    await main_page(callback, txt='Главное меню')
 
 
 #Category button callback handler
@@ -81,7 +84,7 @@ async def get_back_to(callback: types.CallbackQuery,
                       session: Session):
     if callback.data == 'to_main':
         await callback.answer('Вернул на главную')
-        await main_page(callback)
+        await main_page(callback, txt='Главное меню')
     
     elif callback.data == 'to_categories':
         await callback.answer('Вернул на категории')
