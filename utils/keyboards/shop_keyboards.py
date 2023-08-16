@@ -50,6 +50,26 @@ def create_items_kb(category: str,
     return item_kb
 
 
+#Inline photo keyboard
+def create_photo_keyboard(kb_init: str):
+    photo_kb = InlineKeyboardBuilder()
+    match kb_init:
+        case 'start':
+            photo_kb.add(types.InlineKeyboardButton(text='Следующая',
+                                                    callback_data='photo_next'))
+        case 'mid':
+            photo_kb.add(types.InlineKeyboardButton(text='Предыдущая',
+                                                    callback_data='photo_prev'))
+            photo_kb.add(types.InlineKeyboardButton(text='Следующая',
+                                                    callback_data='photo_next'))
+        case 'end':
+            photo_kb.add(types.InlineKeyboardButton(text='Предыдущая',
+                                                    callback_data='photo_prev'))
+
+    photo_kb.row(types.InlineKeyboardButton(text='Назад',
+                                            callback_data='to_items'))
+    return photo_kb
+
 
 def create_close_kb():
     close_kb = InlineKeyboardBuilder()

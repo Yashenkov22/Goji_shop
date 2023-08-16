@@ -96,9 +96,8 @@ async def get_confirm(callback: types.CallbackQuery,
                 print(ex)
                 await callback.answer('Не получилось')
             else:
-                await callback.answer('Фото добавлено')
+                await callback.answer('Фото добавлен(о|ы)')
 
     await state.clear()
     await callback.message.delete()
     await admin_page(callback)
-

@@ -10,11 +10,12 @@ category_router = Router()
 async def create_category(message: types.Message, state: FSMContext):
     await state.update_data(action='add_cat')
     await state.set_state(AddCategory.name)
-    await message.answer('Напиши название новой категории')
+    await message.answer('Напиши название новой категории\n<b>Максимальная длина 21 символ</b>', parse_mode='html')
 
 
 @category_router.message(AddCategory.name)
 async def start_category(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text.capitalize())
-    await message.answer(f'Создать категорию {message.text.capitalize()}?',
-                         reply_markup=create_confirm_kb().as_markup())
+    await message.answer(f'Создать категорию <b>{message.text.capitalize()}</b>?',
+                         reply_markup=create_confirm_kb().as_markup(),
+                         parse_mode='html')

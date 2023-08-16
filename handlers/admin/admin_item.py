@@ -14,6 +14,7 @@ from db.queries import select_current_item
 item_router = Router()
 
 PHOTOS_FOR_LOAD = []
+COUNT_PHOTO = 0
 
 ########################################Add item###############################################
 @item_router.message(F.text == 'Добавить товар')
@@ -36,7 +37,8 @@ async def start_add_item(callback: types.CallbackQuery | types.Message,
     await state.set_state(AddItem.name)
     
     if isinstance(callback, types.CallbackQuery):
-        await callback.message.answer('Напиши название товара(Максимальная длина - 21 символ)')
+        await callback.message.answer('Напиши название товара\n<b>Максимальная длина - 21 символ</b>',
+                                      parse_mode='html')
         await callback.message.delete()
 
 
@@ -65,8 +67,9 @@ async def end_add_item(message: types.Message, state: FSMContext):
     else:
         await state.update_data(price=price)
         data = await state.get_data()
-        await message.answer(f'Создать товар {data["name"].capitalize()} в категории {data["category"]}?',
-                             reply_markup=create_confirm_kb().as_markup())
+        await message.answer(f'Создать товар <b>{data["name"].capitalize()}</b> в категории <b>{data["category"]}</b>?',
+                             reply_markup=create_confirm_kb().as_markup(),
+                             parse_mode='html')
 ###############################################################################################
 
 
@@ -77,7 +80,8 @@ async def del_item_from_db(message: types.Message, state: FSMContext, session: S
     await state.update_data(action='del_item')
     await state.set_state(DeleteItem.category)
     category_kb = create_category_kb(session, prefix='for_del_item')
-    await message.answer('Вместе с товаром удалятся все фото этого товара!!!')
+    await message.answer('<b>Вместе с товаром удалятся все фото этого товара!!!</b>',
+                         parse_mode='html')
     await message.answer('Выбери категорию товара',
                          reply_markup=category_kb.as_markup())
 
@@ -104,8 +108,9 @@ async def start_del_item(callback: types.CallbackQuery,
     item_id = select_current_item(session, name)[0]
     await state.update_data(item_id=item_id)
     data = await state.get_data()
-    await callback.message.answer(f'Удалить товар {name} из категории {data["category"]}?',
-                                  reply_markup=create_confirm_kb().as_markup())
+    await callback.message.answer(f'Удалить товар <b>{name}</b> из категории <b>{data["category"]}</b>?',
+                                  reply_markup=create_confirm_kb().as_markup(),
+                                  parse_mode='html')
     await callback.message.delete()
 ###############################################################################################
 
@@ -138,7 +143,8 @@ async def process_edit_item(callback: types.CallbackQuery,
     await state.update_data(old_item=old_item)
     print(old_item)
     await state.set_state(EditItem.name)
-    await callback.message.answer(f'Напиши новое имя товара(Старое:<{old_item[1]}>)\nЕсли не хочешь менять имя напиши Нет')
+    await callback.message.answer(f'Напиши новое имя товара(Старое: <b>{old_item[1]}</b>)\nЕсли не хочешь менять имя напиши <b>Нет</b>',
+                                  parse_mode='html')
     await callback.message.delete()
 
 @item_router.message(EditItem.name)
@@ -148,7 +154,8 @@ async def new_name_edit_item(message: types.Message, state: FSMContext):
         await state.update_data(name=message.text.capitalize())
     old_price = round(data['old_item'][2], 2)
     await state.set_state(EditItem.price)
-    await message.answer(f'Напиши новую цену товара(Старая:<{old_price}>)\nЕсли не хочешь менять цену напиши Нет')
+    await message.answer(f'Напиши новую цену товара(Старая: <b>{old_price}</b>)\nЕсли не хочешь менять цену напиши <b>Нет</b>',
+                         parse_mode='html')
 
 
 @item_router.message(EditItem.price)
@@ -168,12 +175,13 @@ async def new_price_edit_item(message: types.Message, state: FSMContext):
 
     if data.get('price'):
         old_item = data['old_item']
-        old_descr = f'Название:{old_item[1]}, Цена: {round(old_item[2])}'
+        old_descr = f'Название: {old_item[1]}, Цена: {round(old_item[2])}'
         new_name = '(Не изменилось)' if data['name'] == 'Нет' else data['name']
         new_price = '(Не именилась)' if data['price'] == 'Нет' else data['price']
-        new_descr = f'Название:{new_name}, Цена: {new_price}'
-        await message.answer(f'Изменить товар <{old_item[1]}> из категории <{old_item[-1]}>?\nБыло: {old_descr}\nСтало: {new_descr}',
-                             reply_markup=create_confirm_kb().as_markup())
+        new_descr = f'Название: {new_name}, Цена: {new_price}'
+        await message.answer(f'Изменить товар <b>{old_item[1]}</b> из категории <b>{old_item[-1]}</b>?\nБыло: {old_descr}\nСтало: {new_descr}',
+                             reply_markup=create_confirm_kb().as_markup(),
+                             parse_mode='html')
 ###############################################################################################
 
 
@@ -191,10 +199,8 @@ async def add_photo_to_item(message: types.Message, state: FSMContext, session: 
 @item_router.callback_query(F.data.startswith('add_photo'))
 async def start_add_photo(callback: types.CallbackQuery,
                           session: Session):
-    print('2222')
     category = callback.data.split(':')[-1]
     item_kb = create_items_kb(category, session, prefix='item_for_add_photo')
-    print('after!!!!!')
     await callback.message.answer('Выбери товар, к которому добавить фото',
                                   reply_markup=item_kb.as_markup())
     await callback.message.delete()
@@ -207,26 +213,32 @@ async def process_add_photo(callback: types.CallbackQuery,
     item_name = callback.data.split(':')[-1]
     item = select_current_item(session, item_name)
     await state.update_data(item_id=item[0], item_name=item_name)
-    await callback.message.answer('Загрузи и отправь фото')
+    await callback.message.answer('Загрузи и отправь фото (<b>можно сразу несколько</b>)',
+                                  parse_mode='html')
 
     await callback.message.delete()
 
 @item_router.message(F.photo)
 async def load_photo(message: types.Message):
+    global COUNT_PHOTO
     photo_id = message.photo[0].file_id
     PHOTOS_FOR_LOAD.append(photo_id)
-    await message.answer(f'Загрузка фото...',
+    COUNT_PHOTO += 1
+    await message.answer(f'Фото {COUNT_PHOTO} обработано',
                          reply_markup=load_photo_kb().as_markup(resize_keyboard=True))
 
 
 @item_router.message(F.text == 'Продолжить')
 async def add_photo_in_state(message: types.Message,
-                     state: FSMContext):
+                             state: FSMContext):
     global PHOTOS_FOR_LOAD
+    global COUNT_PHOTO
 
     await state.update_data(photos=PHOTOS_FOR_LOAD)
     data = await state.get_data()
     PHOTOS_FOR_LOAD = []
-    await message.answer(f'Добавить фото к товару {data["item_name"]}?',
-                         reply_markup=create_confirm_kb().as_markup())
+    COUNT_PHOTO = 0
+    await message.answer(f'Добавить фото к товару <b>{data["item_name"]}</b>?',
+                         reply_markup=create_confirm_kb().as_markup(),
+                         parse_mode='html')
 ###############################################################################################

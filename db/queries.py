@@ -46,3 +46,7 @@ def insert_photo(session: Session, data: dict[str, str]):
     with session.begin():
         for photo_id in photo_ids:
             session.execute(insert(photos).values(item_id=data['item_id'], photo_id=photo_id))
+
+
+def select_photos_for_item(session: Session, item_id: int):
+    return session.execute(select(photos.c.photo_id).where(photos.c.item_id == item_id)).fetchall()
