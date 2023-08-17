@@ -31,7 +31,7 @@ async def main_page(message: Union[types.Message, types.CallbackQuery],
         
         await message.answer(txt,
                             reply_markup=main_kb.as_markup(resize_keyboard=True,
-                                                        one_time_keyboard=True))
+                                                           one_time_keyboard=True))
         await message.delete()
 
 
@@ -39,7 +39,7 @@ async def main_page(message: Union[types.Message, types.CallbackQuery],
 async def show_categories(message: types.Message | types.CallbackQuery,
                           session: Session):
     await message.answer('Выбери категорию',
-                        reply_markup=create_category_kb(session).as_markup())
+                         reply_markup=create_category_kb(session).as_markup())
     await message.delete()
 
 
@@ -66,15 +66,20 @@ async def close_up(callback: types.CallbackQuery):
 #Category button callback handler
 @shop_router.callback_query(F.data.startswith('cat'))
 async def show_items_list(callback: types.CallbackQuery,
-                     state: FSMContext,
-                     session: Session,
-                     cat: str = None):
+                          state: FSMContext,
+                          session: Session,
+                          cat: str = None):
     category = callback.data.split(':')[-1] if cat is None else cat
     await state.update_data(category=category)
     item_kb = create_items_kb(category, session)
-    await callback.message.delete()
-    await callback.message.answer('Выбери товар',
-                                  reply_markup=item_kb.as_markup())
+    
+    if item_kb is None:
+        await callback.answer('В категории пока нет товаров',
+                              show_alert=True)
+    else:
+        await callback.message.answer('Выбери товар',
+                                    reply_markup=item_kb.as_markup())
+        await callback.message.delete()
 
 
 #To back button callback handler
@@ -97,9 +102,9 @@ async def get_back_to(callback: types.CallbackQuery,
         await state.clear()
         await callback.answer('Вернул к товарам')
         await show_items_list(callback,
-                         state,
-                         session,
-                         cat=category)
+                              state,
+                              session,
+                              cat=category)
 
 
 #Any input handler

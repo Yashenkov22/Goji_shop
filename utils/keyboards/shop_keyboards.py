@@ -43,6 +43,9 @@ def create_items_kb(category: str,
                     session: Session,
                     prefix: str = 'show_item') -> InlineKeyboardBuilder:
     item_list = get_items_for_current_category(category, session)
+    
+    if not item_list:
+        return 
 
     item_kb = InlineKeyboardBuilder()
     for item in item_list:

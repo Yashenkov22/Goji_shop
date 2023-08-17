@@ -17,7 +17,7 @@ def add_item(session: Session, data: dict):
                                              price=data['price']))
         
         
-def get_all_categories(session:Session):
+def get_all_categories(session: Session):
     return session.execute(select(categories)).all()
 
 

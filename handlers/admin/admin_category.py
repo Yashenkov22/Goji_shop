@@ -19,6 +19,7 @@ async def create_category(message: types.Message,
     await message.answer('Напиши название новой категории\n<b>Максимальная длина 21 символ</b>',
                          reply_markup=keyboard.as_markup(),
                          parse_mode='html')
+    await message.delete()
 
 
 @category_router.message(AddCategory.name)

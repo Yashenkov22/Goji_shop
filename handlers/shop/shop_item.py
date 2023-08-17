@@ -1,5 +1,6 @@
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from aiogram.types import InputMediaPhoto
 
 from sqlalchemy.orm import Session
 
@@ -16,34 +17,37 @@ async def init_current_item(callback: types.CallbackQuery,
     item_name = callback.data.split(':')[-1]
     item = select_current_item(session, item_name)
     item_id = item[0]
-    item_photos = list(map(lambda photo: photo[0],select_photos_for_item(session, item_id)))
-    await state.update_data(name=item[1])
-    await state.update_data(price=item[2])
-    await state.update_data(photos=item_photos)
-    await state.update_data(photo_idx=0)
+    item_photos = list(map(lambda photo: photo[0], select_photos_for_item(session, item_id)))
+    if not item_photos:
+        await callback.answer('У товара ещё нет фото, временно недоступен',
+                              show_alert=True)
+    else:
+        await state.update_data(name=item[1])
+        await state.update_data(price=item[2])
+        await state.update_data(photos=item_photos)
+        await state.update_data(photo_idx=0)
     
-    await show_item(callback, state)
-    await callback.message.delete()
+        await show_item(callback, state)
+        await callback.message.delete()
 
 
 async def show_item(callback: types.CallbackQuery,
                     state: FSMContext):
     data = await state.get_data()
     name, price, photo, photo_kb = item_constructor(data)
-    await callback.message.answer_photo(photo,
-                            caption=f'Товар: {name}\nЦена: {price}',
-                            reply_markup=photo_kb.as_markup())
 
+    if not data.get('visited'):
+        await state.update_data(visited=True)
 
-async def switch_item_photo(callback: types.CallbackQuery,
-                            state: FSMContext):
-    data = await state.get_data()
-    name, price, photo, photo_kb = item_constructor(data)
-    
-    await callback.message.edit_media(types.InputMediaPhoto(media=photo,
-                                                            type='photo',
-                                                            caption=f'Товар: {name}\nЦена: {price}'),
-                                    reply_markup=photo_kb.as_markup())
+        await callback.message.answer_photo(photo,
+                                            caption=f'Товар: {name}\nЦена: {price}',
+                                            reply_markup=photo_kb.as_markup())
+        
+    else:
+        await callback.message.edit_media(InputMediaPhoto(media=photo,
+                                                          type='photo',
+                                                          caption=f'Товар: {name}\nЦена: {price}'),
+                                          reply_markup=photo_kb.as_markup())
 
 
 @item_view_router.callback_query(F.data.startswith('photo'))
@@ -57,4 +61,4 @@ async def init_current_item(callback: types.CallbackQuery,
             await state.update_data(photo_idx=photo_idx+1)
         case 'prev':
             await state.update_data(photo_idx=photo_idx-1)
-    await switch_item_photo(callback, state)
+    await show_item(callback, state)

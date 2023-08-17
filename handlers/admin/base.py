@@ -1,5 +1,6 @@
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 
 from sqlalchemy.orm import Session
 
@@ -28,6 +29,10 @@ async def admin_page(message: types.Message | types.CallbackQuery, **kwargs):
         message = message.message
     await message.answer('Whazz`up, Жижа', reply_markup=admin_kb.as_markup(resize_keyboard=True,
                                                                         one_time_keyboard=True))
+    try:
+        await message.delete()
+    except TelegramBadRequest:
+        pass
 
 
 @admin_router.message(F.text == 'На главную')

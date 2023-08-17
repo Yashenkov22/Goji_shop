@@ -1,5 +1,4 @@
 from sqlalchemy import Column, DECIMAL, ForeignKey, String, Integer, MetaData, Table
-from sqlalchemy.orm import relationship
 
 
 metadata = MetaData()

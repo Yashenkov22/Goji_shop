@@ -31,6 +31,7 @@ async def add_item_to_db(message: types.Message,
     keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('Выбери категорию товара',
                          reply_markup=keyboard.as_markup())
+    await message.delete()
 
 
 @item_router.callback_query(F.data.startswith('add_item'))
@@ -96,6 +97,7 @@ async def del_item_from_db(message: types.Message,
     await message.answer('<b>Вместе с товаром удалятся все фото этого товара!!!</b>\nВыбери категорию товара',
                          reply_markup=keyboard.as_markup(),
                          parse_mode='html')
+    await message.delete()
 
 
 @item_router.callback_query(F.data.startswith('for_del_item'))
@@ -106,9 +108,13 @@ async def start_del_item(callback: types.CallbackQuery,
     await state.update_data(category=category)
     await state.set_state(DeleteItem.name)
     item_kb = create_items_kb(category, session, prefix='select_item_for_del')
-    await callback.message.answer('Выбери товар, который хочешь удалить',
-                                  reply_markup=item_kb.as_markup())
-    await callback.message.delete()
+
+    if item_kb is None:
+        await callback.answer('В категории нет товаров')
+    else:
+        await callback.message.answer('Выбери товар, который хочешь удалить',
+                                    reply_markup=item_kb.as_markup())
+        await callback.message.delete()
 
 
 @item_router.callback_query(F.data.startswith('select_item_for_del'))
@@ -139,6 +145,7 @@ async def edit_item_in_db(message: types.Message,
     keyboard = kb_with_cancel_btn(keyboard=category_kb)
     await message.answer('Выбери категорию товара',
                          reply_markup=keyboard.as_markup())
+    await message.delete()
     
 
 @item_router.callback_query(F.data.startswith('for_edit_item'))
@@ -146,9 +153,12 @@ async def start_edit_item(callback: types.CallbackQuery,
                           session: Session):
     category = callback.data.split(':')[-1]
     item_kb = create_items_kb(category, session, prefix='select_item_for_edit')
-    await callback.message.answer('Выбери товар, который хочешь изменить',
-                                  reply_markup=item_kb.as_markup())
-    await callback.message.delete()
+    if item_kb is None:
+        await callback.answer('В категории нет товаров')
+    else:
+        await callback.message.answer('Выбери товар, который хочешь изменить',
+                                    reply_markup=item_kb.as_markup())
+        await callback.message.delete()
 
 
 @item_router.callback_query(F.data.startswith('select_item_for_edit'))
@@ -222,9 +232,12 @@ async def start_add_photo(callback: types.CallbackQuery,
                           session: Session):
     category = callback.data.split(':')[-1]
     item_kb = create_items_kb(category, session, prefix='item_for_add_photo')
-    await callback.message.answer('Выбери товар, к которому добавить фото',
-                                  reply_markup=item_kb.as_markup())
-    await callback.message.delete()
+    if item_kb is None:
+        await callback.answer('В категории нет товаров')
+    else:
+        await callback.message.answer('Выбери товар, к которому добавить фото',
+                                    reply_markup=item_kb.as_markup())
+        await callback.message.delete()
 
 
 @item_router.callback_query(F.data.startswith('item_for_add_photo'))
