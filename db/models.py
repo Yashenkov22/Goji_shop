@@ -27,3 +27,20 @@ photos = Table(
     Column('photo_id', String, primary_key=True),
     Column('item_id', Integer, ForeignKey('items.id')),
 )
+
+
+sizes = Table(
+    'sizes',
+    metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('size', String, unique=True),
+)
+
+ItemSize = Table(
+    'item_sizes',
+    metadata,
+    Column('id', primary_key=True, autoincrement=True),
+    Column('item_id', Integer, ForeignKey('item.id')),
+    Column('size_id', Integer, ForeignKey('size.id')),
+
+)

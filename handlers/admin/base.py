@@ -88,6 +88,7 @@ async def get_confirm(callback: types.CallbackQuery,
             new_data['id'] = old_item[0]
             new_data['name'] = old_item[1] if data['name'] == 'Нет' else data['name']
             new_data['price'] = old_item[2] if data['price'] == 'Нет' else data['price']
+            
             if old_item[1] == new_data['name'] and int(old_item[2]) == new_data['price']:
                 await callback.answer('Товар остался таким же')
             else:
