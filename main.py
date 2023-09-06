@@ -8,6 +8,7 @@ from sqlalchemy.orm.session import sessionmaker
 
 from config import TOKEN_API
 from db.models import metadata
+# from db.queries import insert_sizes_before_start
 from middlewares.db import DbSessionMiddleware
 from handlers.shop.base import shop_router
 from handlers.admin.base import admin_router
@@ -26,7 +27,12 @@ async def main():
     
     # metadata.drop_all(engine)
     metadata.create_all(engine)
-
+    
+    # try:
+    #     await insert_sizes_before_start(session_maker)
+    # except Exception as ex:
+    #     print(ex)
+    
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

@@ -1,6 +1,7 @@
 from aiogram import types
 from config import ADMIN_IDS
 
+
 def admin_only(func):
     async def wrapped(*args, **kwargs):
         message = None

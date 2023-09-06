@@ -6,7 +6,6 @@ from sqlalchemy.orm.session import Session
 from utils.callbacks import CloseCallback
 from db.queries import get_all_categories, get_items_for_current_category
 from config import ADMIN_IDS
-from utils.callbacks import ConfirmCallback
 
 
 #Keyboard on main page
@@ -32,9 +31,6 @@ def create_category_kb(session: Session, prefix: str = 'cat') -> InlineKeyboardB
     if prefix == 'cat':
         category_kb.row(types.InlineKeyboardButton(text='Назад',
                                                 callback_data='to_main'))
-    # else:
-    #     category_kb.row(types.InlineKeyboardButton(text='Отмена и назад',
-    #                                                callback_data=ConfirmCallback(confirm='no').pack()))
     return category_kb
 
 

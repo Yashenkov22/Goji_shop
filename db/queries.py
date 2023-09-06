@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import select, insert, update, delete
 from db.models import categories, items, photos
 
@@ -18,11 +18,13 @@ def add_item(session: Session, data: dict):
         
         
 def get_all_categories(session: Session):
-    return session.execute(select(categories)).all()
+    with session.begin():
+        return session.execute(select(categories)).all()
 
 
 def get_items_for_current_category(category: str, session: Session):
-    return session.execute(select(items).where(items.c.category == category)).all()
+    with session.begin():
+        return session.execute(select(items).where(items.c.category == category)).all()
 
 
 def delete_item(session: Session, data: dict[str, Any]):
@@ -32,7 +34,8 @@ def delete_item(session: Session, data: dict[str, Any]):
 
 
 def select_current_item(session: Session, name: str):
-    return session.execute(select(items).where(items.c.name == name)).fetchone()
+    with session.begin():
+        return session.execute(select(items).where(items.c.name == name)).fetchone()
 
 
 def update_item(session: Session, data: dict[str, Any]):
@@ -49,4 +52,14 @@ def insert_photo(session: Session, data: dict[str, str]):
 
 
 def select_photos_for_item(session: Session, item_id: int):
-    return session.execute(select(photos.c.photo_id).where(photos.c.item_id == item_id)).fetchall()
+    with session.begin():
+        return session.execute(select(photos.c.photo_id).where(photos.c.item_id == item_id)).fetchall()
+
+
+# async def insert_sizes_before_start(session: sessionmaker):
+#     SIZES = ('XS', 'S', 'M', 'L', 'XL', 'XXL')
+#     with session() as session:
+#         session: Session
+#         with session.begin():
+#             for size in SIZES:
+#                 session.execute(insert(sizes).values(size=size))
