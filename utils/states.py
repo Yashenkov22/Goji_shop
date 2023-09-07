@@ -5,6 +5,10 @@ class AddCategory(StatesGroup):
     name = State()
 
 
+class DeleteCategory(StatesGroup):
+    category = State()
+
+
 class AddItem(StatesGroup):
     category = State()
     name = State()

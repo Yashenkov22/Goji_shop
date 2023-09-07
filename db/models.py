@@ -1,46 +1,28 @@
-from sqlalchemy import Column, DECIMAL, ForeignKey, String, Integer, MetaData, Table
+from decimal import Decimal
+
+from sqlalchemy import DECIMAL, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
-metadata = MetaData()
+
+class Category(Base):
+    __tablename__ = 'categories'
+
+    name: Mapped[str] = mapped_column(primary_key=True)
 
 
-categories = Table(
-    'categories',
-    metadata,
-    Column('name', String, primary_key=True),
-) 
+class Item(Base):
+    __tablename__ = 'items'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str]
+    price: Mapped[Decimal] = mapped_column(DECIMAL(scale=2))
+    category: Mapped[str] = mapped_column(ForeignKey('categories.name'))
 
 
-items = Table(
-    'items',
-    metadata,
-    Column('id',Integer, primary_key=True, autoincrement=True),
-    Column('name', String),
-    Column('price', DECIMAL(2, 2)),
-    Column('category', String, ForeignKey('categories.name')),
-)
+class Photo(Base):
+    __tablename__ = 'photos'
 
-
-photos = Table(
-    'photos',
-    metadata,
-    Column('photo_id', String, primary_key=True),
-    Column('item_id', Integer, ForeignKey('items.id')),
-)
-
-
-# sizes = Table(
-#     'sizes',
-#     metadata,
-#     Column('id', Integer, primary_key=True, autoincrement=True),
-#     Column('size', String, unique=True),
-# )
-
-# ItemSize = Table(
-#     'item_sizes',
-#     metadata,
-#     Column('id', primary_key=True, autoincrement=True),
-#     Column('item_id', Integer, ForeignKey('item.id')),
-#     Column('size_id', Integer, ForeignKey('size.id')),
-# )
+    photo_id: Mapped[str] = mapped_column(primary_key=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey('items.id'))

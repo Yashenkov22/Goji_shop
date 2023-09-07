@@ -15,15 +15,18 @@ async def init_current_item(callback: types.CallbackQuery,
                             state: FSMContext,
                             session: Session):
     item_name = callback.data.split(':')[-1]
-    item = select_current_item(session, item_name)
-    item_id = item[0]
-    item_photos = list(map(lambda photo: photo[0], select_photos_for_item(session, item_id)))
+    item = await select_current_item(session, item_name)
+    item = item[0]
+    item_id = item.id
+    photo_current_item = await select_photos_for_item(session, item_id)
+    item_photos = list(map(lambda photo: photo[0], photo_current_item))
+    
     if not item_photos:
         await callback.answer('У товара ещё нет фото, временно недоступен',
                               show_alert=True)
     else:
-        await state.update_data(name=item[1])
-        await state.update_data(price=item[2])
+        await state.update_data(name=item.name)
+        await state.update_data(price=item.price)
         await state.update_data(photos=item_photos)
         await state.update_data(photo_idx=0)
     

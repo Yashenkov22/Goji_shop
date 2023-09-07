@@ -1,65 +1,69 @@
 from typing import Any
 
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
-from db.models import categories, items, photos
+from db.models import Category, Item, Photo
 
 
-def add_category(session: Session, data: dict[str,str]):
-    with session.begin():
-        session.execute(insert(categories).values(name=data['name']))
+async def add_category(session: AsyncSession, data: dict[str,str]):
+    async with session.begin():
+        await session.execute(insert(Category).values(name=data['name']))
 
 
-def add_item(session: Session, data: dict):
-    with session.begin():
-        session.execute(insert(items).values(category=data['category'],
+async def add_item(session: AsyncSession, data: dict):
+    async with session.begin():
+        await session.execute(insert(Item).values(category=data['category'],
                                              name=data['name'],
                                              price=data['price']))
         
         
-def get_all_categories(session: Session):
-    with session.begin():
-        return session.execute(select(categories)).all()
+async def get_all_categories(session: AsyncSession):
+    async with session.begin():
+        result = await session.execute(select(Category.name))
+        return result.all()
 
 
-def get_items_for_current_category(category: str, session: Session):
-    with session.begin():
-        return session.execute(select(items).where(items.c.category == category)).all()
+async def get_items_for_current_category(category: str, session: AsyncSession):
+    async with session.begin():
+        result = await session.execute(select(Item).where(Item.category == category))
+        return result.all()
 
 
-def delete_item(session: Session, data: dict[str, Any]):
-    with session.begin():
-        session.execute(delete(photos).where(photos.c.item_id == data['item_id']))
-        session.execute(delete(items).where(items.c.id == data['item_id']))
+async def delete_item(session: AsyncSession, item_id: int):
+    async with session.begin():
+        await session.execute(delete(Photo).where(Photo.item_id == item_id))
+        await session.execute(delete(Item).where(Item.id == item_id))
 
 
-def select_current_item(session: Session, name: str):
-    with session.begin():
-        return session.execute(select(items).where(items.c.name == name)).fetchone()
+async def select_current_item(session: AsyncSession, name: str):
+    async with session.begin():
+        result = await session.execute(select(Item).where(Item.name == name))
+        return result.fetchone()
 
 
-def update_item(session: Session, data: dict[str, Any]):
-    with session.begin():
-        session.execute(update(items).where(items.c.id == data['id']).values(name=data['name'],
+async def update_item(session: AsyncSession, data: dict[str, Any]):
+    async with session.begin():
+        await session.execute(update(Item).where(Item.id == data['id']).values(name=data['name'],
                                                                              price=data['price']))
 
 
-def insert_photo(session: Session, data: dict[str, str]):
+async def insert_photo(session: AsyncSession, data: dict[str, str]):
     photo_ids = data['photos']
-    with session.begin():
+    async with session.begin():
         for photo_id in photo_ids:
-            session.execute(insert(photos).values(item_id=data['item_id'], photo_id=photo_id))
+            await session.execute(insert(Photo).values(item_id=data['item_id'], photo_id=photo_id))
 
 
-def select_photos_for_item(session: Session, item_id: int):
-    with session.begin():
-        return session.execute(select(photos.c.photo_id).where(photos.c.item_id == item_id)).fetchall()
+async def select_photos_for_item(session: AsyncSession, item_id: int):
+    async with session.begin():
+        result = await session.execute(select(Photo.photo_id).where(Photo.item_id == item_id))
+        return result.fetchall()
 
+async def delete_category(session: AsyncSession, data: dict[str, Any]):
+    items = await get_items_for_current_category(data['category'], session)
 
-# async def insert_sizes_before_start(session: sessionmaker):
-#     SIZES = ('XS', 'S', 'M', 'L', 'XL', 'XXL')
-#     with session() as session:
-#         session: Session
-#         with session.begin():
-#             for size in SIZES:
-#                 session.execute(insert(sizes).values(size=size))
+    for item in items:
+        await delete_item(session, item[0].id)
+    
+    async with session.begin():
+        await session.execute(delete(Category).where(Category.name == data['category']))
