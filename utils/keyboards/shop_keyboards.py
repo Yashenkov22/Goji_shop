@@ -5,19 +5,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from utils.callbacks import CloseCallback
 from db.queries import get_all_categories, get_items_for_current_category
-from config import ADMIN_IDS
+# from config import ADMIN_IDS
 
 
 #Keyboard on main page
-def create_main_kb(user_id):
+def create_shop_kb():
 
-    main_kb = ReplyKeyboardBuilder()
-    main_kb.row(types.KeyboardButton(text='Ассортимент'))
-    main_kb.row(types.KeyboardButton(text='Промо'))
-    main_kb.row(types.KeyboardButton(text='Написать продавцу'))
-    if user_id in ADMIN_IDS:
-        main_kb.row(types.KeyboardButton(text='Админ панель'))
-    return main_kb
+    shop_kb = ReplyKeyboardBuilder()
+    shop_kb.row(types.KeyboardButton(text='Ассортимент'))
+    # main_kb.row(types.KeyboardButton(text='Промо'))
+    shop_kb.row(types.KeyboardButton(text='Написать продавцу'))
+    shop_kb.row(types.KeyboardButton(text='В главное меню'))
+
+    return shop_kb
 
 #Inline keyboard categories
 async def create_category_kb(session: AsyncSession, prefix: str = 'cat') -> InlineKeyboardBuilder:
@@ -74,8 +74,10 @@ def create_photo_keyboard(kb_init: str):
     return photo_kb
 
 
-def create_close_kb():
+def create_close_kb(what: str):
     close_kb = InlineKeyboardBuilder()
-    close_kb.button(text='В главное меню',
-                    callback_data=CloseCallback(action='close').pack())
+    
+    txt = 'В главное меню' if what =='promo' else 'В раздел'
+    close_kb.button(text=txt,
+                    callback_data=CloseCallback(action=f'close_{what}').pack())
     return close_kb

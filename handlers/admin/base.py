@@ -13,7 +13,7 @@ from db.queries import (add_category,
                         delete_item,
                         update_item,
                         insert_photo)
-from handlers.shop.base import main_page
+from handlers.base import main_page
 from .admin_category import category_router
 from .admin_item import item_router
 from utils.admin_decorator import admin_only

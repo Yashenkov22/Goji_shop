@@ -44,6 +44,7 @@ async def show_item(callback: types.CallbackQuery,
 
         await callback.message.answer_photo(photo,
                                             caption=f'Товар: {name}\nЦена: {price}',
+                                            disable_notification=True,
                                             reply_markup=photo_kb.as_markup())
         
     else:

@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from config import TOKEN_API, db_url
 from db.base import Base
 from middlewares.db import DbSessionMiddleware
+from handlers.base import main_router
 from handlers.shop.base import shop_router
 from handlers.admin.base import admin_router
 
@@ -21,6 +22,7 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(admin_router)
     dp.include_router(shop_router)
+    dp.include_router(main_router)
     
     dp.update.middleware(DbSessionMiddleware(session_pool=async_session))
     
