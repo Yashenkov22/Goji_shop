@@ -26,3 +26,16 @@ class Photo(Base):
 
     photo_id: Mapped[str] = mapped_column(primary_key=True)
     item_id: Mapped[int] = mapped_column(ForeignKey('items.id'))
+
+
+class Artist(Base):
+    __tablename__ = 'artists'
+
+    name: Mapped[str] = mapped_column(primary_key=True)
+
+
+class Music(Base):
+    __tablename__ = 'musics'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    artist_name: Mapped[str] = mapped_column(ForeignKey('artists.name'))

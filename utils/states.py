@@ -27,4 +27,12 @@ class EditItem(StatesGroup):
 
 
 class AddPhoto(StatesGroup):
-    pass
+    photo = State()
+
+
+class AddArtist(StatesGroup):
+    name = State()
+
+
+class DelArtist(StatesGroup):
+    name = State()

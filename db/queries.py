@@ -2,7 +2,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
-from db.models import Category, Item, Photo
+from db.models import Category, Item, Photo, Artist
 
 
 async def add_category(session: AsyncSession, data: dict[str,str]):
@@ -59,6 +59,7 @@ async def select_photos_for_item(session: AsyncSession, item_id: int):
         result = await session.execute(select(Photo.photo_id).where(Photo.item_id == item_id))
         return result.fetchall()
 
+
 async def delete_category(session: AsyncSession, data: dict[str, Any]):
     items = await get_items_for_current_category(data['category'], session)
 
@@ -67,3 +68,24 @@ async def delete_category(session: AsyncSession, data: dict[str, Any]):
     
     async with session.begin():
         await session.execute(delete(Category).where(Category.name == data['category']))
+
+
+async def select_all_artists(session: AsyncSession):
+    async with session.begin():
+        result = await session.execute(select(Artist.name))
+        return result.fetchall()
+    
+
+async def insert_artist(session: AsyncSession, data: dict[str, Any]):
+    async with session.begin():
+        await session.execute(insert(Artist).values(name=data['name']))
+
+
+async def delete_artist(session: AsyncSession, data: dict[str, Any]):
+    async with session.begin():
+        await session.execute(delete(Artist).where(Artist.name == data['name']))
+
+
+async def delete_photo(session: AsyncSession, data: [str, Any]):
+    async with session.begin():
+        await session.execute(delete(Photo).where(Photo.photo_id == data['photo_to_delete']))

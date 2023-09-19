@@ -2,7 +2,7 @@ from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InputMediaPhoto
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.queries import select_current_item, select_photos_for_item
 from utils.item_photo import item_constructor
@@ -13,7 +13,7 @@ item_view_router = Router()
 @item_view_router.callback_query(F.data.startswith('show_item'))
 async def init_current_item(callback: types.CallbackQuery,
                             state: FSMContext,
-                            session: Session):
+                            session: AsyncSession):
     item_name = callback.data.split(':')[-1]
     item = await select_current_item(session, item_name)
     item = item[0]
@@ -55,7 +55,7 @@ async def show_item(callback: types.CallbackQuery,
 
 
 @item_view_router.callback_query(F.data.startswith('photo'))
-async def init_current_item(callback: types.CallbackQuery,
+async def init_current_photo(callback: types.CallbackQuery,
                             state: FSMContext):
     action = callback.data.split('_')[-1]
     data = await state.get_data()

@@ -24,17 +24,15 @@ async def create_category(message: types.Message,
 
     await state.update_data(action='add_cat')
     await state.set_state(AddCategory.name)
-    
-    # await state.update_data(prev_msg=list())
-    # data = await state.get_data()
 
     keyboard = kb_with_cancel_btn()
     
     cat_msg = await message.answer('Напиши название новой категории\n<b>Максимальная длина 21 символ</b>',
-                         reply_markup=keyboard.as_markup(),
-                         parse_mode='html')
+                                   disable_notification=True,
+                                   reply_markup=keyboard.as_markup(),
+                                   parse_mode='html')
+    
     await state.update_data(cat_msg=(cat_msg.chat.id, cat_msg.message_id))
-    # add_message_for_delete(data, msg)
 
     await message.delete()
 
@@ -46,6 +44,7 @@ async def start_category(message: types.Message,
                          bot: Bot,
                          **kwargs):
     data = await state.get_data()
+
     if data.get('cat_msg'):
         cat_msg = data['cat_msg']
         await bot.delete_message(*cat_msg)
@@ -53,6 +52,7 @@ async def start_category(message: types.Message,
     await state.update_data(name=message.text.capitalize())
 
     await message.answer(f'Создать категорию <b>{message.text.capitalize()}</b>?',
+                         disable_notification=True,
                          reply_markup=create_confirm_kb().as_markup(),
                          parse_mode='html')
     
@@ -70,11 +70,15 @@ async def delete_category(message: types.Message,
 
     await state.update_data(action='del_cat')
     category_list = await create_category_kb(session, prefix='del_cat')
+    
     await state.set_state(DeleteCategory.category)
     keyboard = kb_with_cancel_btn(category_list)
+
     await message.answer('<b>Все товары, связанные с выбранной категорией, будут удалены вместе с ней</b>\nВыбери категорию для удаления',
+                         disable_notification=True,
                          reply_markup=keyboard.as_markup(),
                          parse_mode='html')
+    
     await message.delete()
 
 
@@ -87,6 +91,7 @@ async def delete_category(callback: types.CallbackQuery,
     await state.update_data(category=category)
 
     await callback.message.answer(f'Удалить категорию <b>{category}</b>?',
-                         reply_markup=create_confirm_kb().as_markup(),
-                         parse_mode='html')
+                                  disable_notification=True,
+                                  reply_markup=create_confirm_kb().as_markup(),
+                                  parse_mode='html')
     await callback.message.delete()

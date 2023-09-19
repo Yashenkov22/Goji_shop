@@ -7,7 +7,7 @@ from utils.callbacks import CloseCallback
 
 def create_main_kb(user_id: int):
     main_kb = ReplyKeyboardBuilder()
-    main_kb.add(types.KeyboardButton(text='Товары'))
+    main_kb.add(types.KeyboardButton(text='Магазин'))
     main_kb.add(types.KeyboardButton(text='Творчество'))
 
     if user_id in ADMIN_IDS:
@@ -25,7 +25,7 @@ def create_main_kb(user_id: int):
 def create_close_kb(what: str):
     close_kb = InlineKeyboardBuilder()
     
-    txt = 'В главное меню' if what =='promo' else 'Назад в раздел'
+    txt = 'В главное меню' if what =='promo' else 'Назад в магазин'
     close_kb.button(text=txt,
                     callback_data=CloseCallback(action=f'close_{what}').pack())
     return close_kb

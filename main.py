@@ -11,6 +11,7 @@ from middlewares.db import DbSessionMiddleware
 from handlers.base import main_router
 from handlers.shop.base import shop_router
 from handlers.admin.base import admin_router
+from handlers.art.base import art_router
 
 
 async def main():
@@ -19,9 +20,11 @@ async def main():
     async_session = async_sessionmaker(engine, expire_on_commit=False)
 
     bot = Bot(TOKEN_API)
+    
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(admin_router)
     dp.include_router(shop_router)
+    dp.include_router(art_router)
     dp.include_router(main_router)
     
     dp.update.middleware(DbSessionMiddleware(session_pool=async_session))

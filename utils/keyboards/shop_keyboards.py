@@ -19,8 +19,10 @@ def create_shop_kb():
 
     return shop_kb
 
+
 #Inline keyboard categories
-async def create_category_kb(session: AsyncSession, prefix: str = 'cat') -> InlineKeyboardBuilder:
+async def create_category_kb(session: AsyncSession,
+                             prefix: str = 'cat') -> InlineKeyboardBuilder:
     category_list = await get_all_categories(session)
     category_kb = InlineKeyboardBuilder()
     for cat in category_list:
@@ -36,8 +38,8 @@ async def create_category_kb(session: AsyncSession, prefix: str = 'cat') -> Inli
 
 #Inline keyboard items
 async def create_items_kb(category: str,
-                    session: AsyncSession,
-                    prefix: str = 'show_item') -> InlineKeyboardBuilder:
+                          session: AsyncSession,
+                          prefix: str = 'show_item') -> InlineKeyboardBuilder:
     item_list = await get_items_for_current_category(category, session)
     
     if not item_list:
@@ -49,7 +51,7 @@ async def create_items_kb(category: str,
                                                callback_data=f'{prefix}:{item[0].name}'))
     if prefix == 'show_item':
         item_kb.row(types.InlineKeyboardButton(text='Назад',
-                                            callback_data='to_categories'))
+                                               callback_data='to_categories'))
     return item_kb
 
 

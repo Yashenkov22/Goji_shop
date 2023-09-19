@@ -1,4 +1,5 @@
 from typing import Union
+from random import choice
 
 from aiogram import types, Bot, Router, F
 from aiogram.filters import Command
@@ -7,12 +8,14 @@ from aiogram.exceptions import TelegramBadRequest
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# from handlers.admin.base import admin_page
 from handlers.shop.base import show_categories, show_items_list
-from config import PROMO_ID
+from config import PROMO_ID, PIC_IDS
 from utils.delete_message import (try_delete_prev_message,
                                   add_message_for_delete)
 from utils.keyboards.main_keyboard import create_main_kb, create_close_kb
 from utils.keyboards.shop_keyboards import create_shop_kb
+from utils.keyboards.art_keyboards import create_art_kb
 
 
 main_router = Router()
@@ -35,10 +38,13 @@ async def main_page(message: Union[types.Message, types.CallbackQuery],
         if isinstance(message, types.CallbackQuery):
             message = message.message
         
-        msg = await message.answer(txt,
-                                   disable_notification=True,
-                                   reply_markup=main_kb.as_markup(resize_keyboard=True,
-                                                                  one_time_keyboard=True))
+        photo = choice(PIC_IDS)
+
+        msg = await message.answer_photo(photo,
+                                         caption=txt,
+                                         disable_notification=True,
+                                         reply_markup=main_kb.as_markup(resize_keyboard=True,
+                                                                        one_time_keyboard=True))
 
         add_message_for_delete(data, msg)
         
@@ -60,7 +66,7 @@ async def show_promo(message: types.Message,
     await message.delete()
 
 
-@main_router.message(F.text == 'Товары')
+@main_router.message(F.text == 'Магазин')
 async def to_shop(message: types.Message | types.CallbackQuery,
                   state: FSMContext,
                   bot: Bot):
@@ -73,21 +79,42 @@ async def to_shop(message: types.Message | types.CallbackQuery,
     if isinstance(message, types.CallbackQuery):
         message = message.message
 
-    msg = await message.answer('Раздел Товары',
+    msg = await message.answer('Goji Shop',
                                disable_notification=True,
                                reply_markup=shop_kb.as_markup(resize_keyboard=True))
     
     add_message_for_delete(data, msg)
 
     await message.delete()
+
+
+@main_router.message(F.text == 'Творчество')
+async def to_art(message: types.Message | types.CallbackQuery,
+                 state: FSMContext,
+                 bot: Bot):
+    await try_delete_prev_message(bot, state)
+
+    await state.update_data(prev_msg=list())
+    data = await state.get_data()
+
+    art_kb = create_art_kb()
+    if isinstance(message, types.CallbackQuery):
+        message = message.message
+
+    msg = await message.answer('Goji Art',
+                               disable_notification=True,
+                               reply_markup=art_kb.as_markup(resize_keyboard=True))
     
+    add_message_for_delete(data, msg)
+
+    await message.delete()
+
 
 @main_router.message(F.text == 'В главное меню')
 async def show_link(message: types.Message,
                     bot: Bot,
                     state: FSMContext):
     await try_delete_prev_message(bot, state)
-
 
     await main_page(message,
                     state,
@@ -97,9 +124,9 @@ async def show_link(message: types.Message,
     # await message.delete()
 
 
-@main_router.message(F.audio)
+@main_router.message(F.photo)
 async def audio(message: types.Message):
-    await message.answer('музыка')
+    await message.answer(message.photo[0].file_id)
 
 
 @main_router.callback_query(F.data.startswith('close'))
@@ -114,11 +141,13 @@ async def close_up(callback: types.CallbackQuery,
                       state,
                       bot)
 
+
 @main_router.callback_query(F.data.startswith('to'))
 async def get_back_to(callback: types.CallbackQuery,
                       state: FSMContext,
                       bot: Bot,
-                      session: AsyncSession):
+                      session: AsyncSession,
+                      **kwargs):
     if callback.data == 'to_main':
         await callback.answer('Вернул на главную')
         await to_shop(callback, state, bot)
@@ -140,6 +169,21 @@ async def get_back_to(callback: types.CallbackQuery,
                               state,
                               session,
                               cat=category)
+        
+    elif callback.data == 'to_art':
+        await state.clear()
+        await callback.answer('Вернул к творчеству')
+        await to_art(callback,
+                     state,
+                     bot)
+        
+    elif callback.data == 'to_admin_page':
+        await state.clear()
+        await callback.answer('Вернул в админку')
+        await main_page(callback,
+                        state,
+                        bot,
+                        txt='Главное меню')
 
 
 @main_router.message()
