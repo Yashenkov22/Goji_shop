@@ -12,6 +12,7 @@ from utils.keyboards.admin_keyboards import (create_admin_kb,
                                              create_manage_artist_kb)
 from utils.delete_message import (try_delete_prev_message,
                                   add_message_for_delete)
+from utils.admin_decorator import admin_only
 from db.queries import (add_category,
                         delete_category,
                         add_item,
@@ -25,8 +26,7 @@ from handlers.base import main_page
 from .admin_category import category_router
 from .admin_item import item_router
 from .admin_artist import artist_router
-from utils.admin_decorator import admin_only
-
+from .confirm_actions import action_dict
 
 admin_router = Router()
 admin_router.include_router(category_router)
@@ -195,113 +195,119 @@ async def get_confirm(callback: types.CallbackQuery,
     
     else:
         data = await state.get_data()
-        
-        if data['action'] == 'add_cat':
-            try:
-                await add_category(session, data)
-            except Exception as ex:
-                print(ex)
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer(f'Категория {data["name"]} добавлена',
-                                      show_alert=True)
 
-        elif data['action'] == 'del_cat':
-            try:
-                await delete_category(session, data)
-            except Exception as ex:
-                print(ex)
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer(f'Категория {data["category"]} удалена',
-                                      show_alert=True)
+        action_func = action_dict[data['action']]
+
+        await action_func(callback, session, data)
+
+
         
-        elif data['action'] == 'add_item':
-            try:
-                await add_item(session, data)
-            except Exception as ex:
-                print(ex)
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer(f'Товар {data["name"]} добавлен',
-                                      show_alert=True)
+        # if data['action'] == 'add_cat':
+        #     try:
+        #         await add_category(session, data)
+        #     except Exception as ex:
+        #         print(ex)
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer(f'Категория {data["name"]} добавлена',
+        #                               show_alert=True)
+
+        # elif data['action'] == 'del_cat':
+        #     try:
+        #         await delete_category(session, data)
+        #     except Exception as ex:
+        #         print(ex)
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer(f'Категория {data["category"]} удалена',
+        #                               show_alert=True)
+        
+        # elif data['action'] == 'add_item':
+        #     try:
+        #         await add_item(session, data)
+        #     except Exception as ex:
+        #         print(ex)
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer(f'Товар {data["name"]} добавлен',
+        #                               show_alert=True)
             
 
-        elif data['action'] == 'del_item':
-            try:
-                await delete_item(session, data['item_id'])
-            except Exception as ex:
-                print(ex)
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer(f'Товар {data["name"]} удален',
-                                      show_alert=True)
+        # elif data['action'] == 'del_item':
+        #     try:
+        #         await delete_item(session, data['item_id'])
+        #     except Exception as ex:
+        #         print(ex)
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer(f'Товар {data["name"]} удален',
+        #                               show_alert=True)
         
-        elif data['action'] == 'edit_item':
-            new_data = {}
-            old_item = data['old_item']
-            new_data['id'] = old_item.id
-            new_data['name'] = old_item.name if data['name'] == 'Нет' else data['name']
-            new_data['price'] = old_item.price if data['price'] == 'Нет' else data['price']
+        # elif data['action'] == 'edit_item':
+        #     new_data = {}
+        #     old_item = data['old_item']
+        #     new_data['id'] = old_item.id
+        #     new_data['name'] = old_item.name if data['name'] == 'Нет' else data['name']
+        #     new_data['price'] = old_item.price if data['price'] == 'Нет' else data['price']
             
-            if old_item.name == new_data['name'] and int(old_item.price) == new_data['price']:
-                await callback.answer('Товар остался таким же',
-                                      show_alert=True)
-            else:
-                try:
-                    await update_item(session, new_data)
-                except Exception as ex:
-                    print(ex)
-                    await callback.answer('Не получилось',
-                                          show_alert=True)
-                else:
-                    await callback.answer('Товар изменён',
-                                          show_alert=True)
+        #     if old_item.name == new_data['name'] and int(old_item.price) == new_data['price']:
+        #         await callback.answer('Товар остался таким же',
+        #                               show_alert=True)
+        #     else:
+        #         try:
+        #             await update_item(session, new_data)
+        #         except Exception as ex:
+        #             print(ex)
+        #             await callback.answer('Не получилось',
+        #                                   show_alert=True)
+        #         else:
+        #             await callback.answer('Товар изменён',
+        #                                   show_alert=True)
         
-        elif data['action'] == 'add_photo':
-            try:
-                await insert_photo(session, data)
-            except Exception as ex:
-                print(ex)
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer('Фото добавлен(о|ы)',
-                                      show_alert=True)
+        # elif data['action'] == 'add_photo':
+        #     try:
+        #         await insert_photo(session, data)
+        #     except Exception as ex:
+        #         print(ex)
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer('Фото добавлен(о|ы)',
+        #                               show_alert=True)
 
-        elif data['action'] == 'delete_photo':
-            try:
-                await delete_photo(session, data)
-            except Exception:
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer('Фото удалено',
-                                      show_alert=True)
+        # elif data['action'] == 'delete_photo':
+        #     try:
+        #         await delete_photo(session, data)
+        #     except Exception:
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer('Фото удалено',
+        #                               show_alert=True)
 
-        elif data['action'] == 'add_artist':
-            try:
-                await insert_artist(session, data)
-            except Exception:
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer('Артист добавлен',
-                                      show_alert=True)
+        # elif data['action'] == 'add_artist':
+        #     try:
+        #         await insert_artist(session, data)
+        #     except Exception:
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer('Артист добавлен',
+        #                               show_alert=True)
 
-        elif data['action'] == 'del_artist':
-            try:
-                await delete_artist(session, data)
-            except Exception:
-                await callback.answer('Не получилось',
-                                      show_alert=True)
-            else:
-                await callback.answer('Артист удалён',
-                                      show_alert=True)
+        # elif data['action'] == 'del_artist':
+        #     try:
+        #         await delete_artist(session, data)
+        #     except Exception:
+        #         await callback.answer('Не получилось',
+        #                               show_alert=True)
+        #     else:
+        #         await callback.answer('Артист удалён',
+        #                               show_alert=True)
 
     await try_delete_prev_message(bot, state)
 
